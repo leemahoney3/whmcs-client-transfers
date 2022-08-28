@@ -351,4 +351,38 @@ class Transfer {
 
     }
 
+    public static function getByStatus($type, $status) {
+
+        if ($type == 'transfer') {
+            
+            $transfers = [];
+
+            $getTransfers = Database::getTransfers($status);
+
+            foreach ($getTransfers as $key => $transfer) {
+
+                $transfers[$key] = [
+                    'id' => $transfer->id,
+                    'type' => $transfer->type,
+                    'losing_client' => Database::getClientById($transfer->losing_client_id),
+                    'gaining_client' => Database::getClientById($transfer->gaining_client_id),
+                    'requested_at' => date('d/m/Y @ H:i:s', strtotime($transfer->requested_at)),
+                    'completed_at' => date('d/m/Y @ H:i:s', strtotime($transfer->requested_at)),
+                    'service_domain' => ($transfer->type == 'domain') ? 'Domain - ' . Database::getDomainById($transfer->domain_id)->domain : Database::getServiceById($transfer->service_id)->name . ' - ' . Database::getServiceById($transfer->service_id)->domain,
+                    'service_id' => $transfer->service_id,
+                    'domain_id' => $transfer->domain_id
+                ];
+
+            }
+
+            return $transfers;
+            
+        } else if ($type == 'service') {
+            return Database::getTransfers($status, 'service');
+        } else if ($type == 'domain') {
+            return Database::getTransfers($status, 'domain');
+        }
+
+    }
+
 }

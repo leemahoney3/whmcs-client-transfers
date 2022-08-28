@@ -229,6 +229,16 @@ class Database {
         
     }
 
+    public static function getTransfers($status, $type = '') {
+
+        if (empty($type)) {
+            return Capsule::table('mod_clienttransfers_transfers')->where('status', $status)->get();
+        } else {
+            return Capsule::table('mod_clienttransfers_transfers')->where('type', $type)->where('status', $status)->get();
+        }
+
+    }
+
     ## INVOICES
 
     public static function getClientInvoices($clientID, $status = 'Unpaid') {

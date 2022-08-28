@@ -2,6 +2,7 @@
 
 namespace LMTech\ClientTransfers\Admin;
 
+use LMTech\ClientTransfers\Transfer\Transfer;
 use LMTech\ClientTransfers\Helpers\AdminPageHelper;
 
 /**
@@ -27,7 +28,24 @@ class Admin {
         $alerts     = [];
 
         if (AdminPageHelper::getCurrentPage() == 'dashboard') {
-            
+
+            $transfers = [
+                'pendingTransfers'      => Transfer::getByStatus('transfer', 'pending'),
+                'completedTransfers'    => Transfer::getByStatus('transfer', 'accepted'),
+                'deniedTransfers'       => Transfer::getByStatus('transfer', 'denied'),
+                'cancelledTransfers'    => Transfer::getByStatus('transfer', 'cancelled'),
+                'servicesTransferred'   => Transfer::getByStatus('service', 'accepted'),
+                'domainsTransferred'    => Transfer::getByStatus('domain', 'accepted'),
+            ];
+
+            AdminPageHelper::outputPage([
+                'moduleLink'    => $vars['modulelink'],
+                'alerts'        => $alerts,
+                'transfers'         => $transfers
+            ]);
+
+
+
         }
 
         if (AdminPageHelper::getCurrentPage() == 'settings') {
@@ -41,13 +59,13 @@ class Admin {
 
             }
 
-        }
+            AdminPageHelper::outputPage([
+                'moduleLink'    => $vars['modulelink'],
+                'formData'      => $formData,
+                'alerts'        => $alerts
+            ]);
 
-        AdminPageHelper::outputPage([
-            'moduleLink'    => $vars['modulelink'],
-            'formData'      => $formData,
-            'alerts'        => $alerts
-        ]);
+        }
 
     }
 

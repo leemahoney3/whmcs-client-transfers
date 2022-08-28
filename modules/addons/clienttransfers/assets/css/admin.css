@@ -178,6 +178,7 @@
 .ct-container .ct-heading {
     font-size: 24px;
     font-weight: 500;
+    margin-bottom: 25px;
 }
 
 .ct-settings-section {
@@ -356,6 +357,18 @@
     background-color: #8782f8;
 }
 
+.btn-purple {
+    background: #645df6;
+    color: #fff;
+    height: 37px;
+}
+
+.btn-purple:hover {
+    background-color: #8782f8;
+    color: #fff;
+    text-decoration: none;
+}
+
 .ct-alert {
     width: 100%;
     background: #fff;
@@ -438,4 +451,39 @@
 
 .ct-alert.error a {
     color: #721c24 !important;
+}
+
+.ct-statboxes {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    gap: 23px;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.ct-statbox {
+    padding: 25px 35px;
+    background: #fff;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.06) 0px 1px 2px 0px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ct-statbox .ct-num {
+    font-size: 25px;
+}
+
+.ct-statbox .ct-desc {
+    font-size: 13px;
+}
+
+.tab-pane {
+    background: #fff;
+    min-height: 300px;
+    padding: 10px;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
 }

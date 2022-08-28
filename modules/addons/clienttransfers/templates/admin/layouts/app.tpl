@@ -37,17 +37,17 @@
 
                 {block name="content"}{/block}
             </div>
+        
+            <script>
+                $(document).ready(function () {
+                    $('.ct-alert-close').on('click', function(e) {
+                        e.preventDefault();
+                        $(this).parent().parent().fadeOut(500);
+                    });
+                });
+            </script>
 
-        <script>
-            $('.ct-alert-close').on('click', function(e) {
-
-                e.preventDefault();
-                
-                $(this).parent().parent().fadeOut(500);
-
-            });
-        </script>
-        {block name="scripts"}{/block}
+            {block name="scripts"}{/block}
         </div>
 
 </div>
