@@ -23,13 +23,17 @@ use LMTech\ClientTransfers\Helpers\AdminPageHelper;
 class Admin {
 
     public static function output($vars) {
-        
-        $formData   = [];
-        $alerts     = [];
+      
+        $passThru = [
+            'moduleLink' => $vars['modulelink'],
+            'alerts' => [],
+            'formData' => []
+        ];
+
 
         if (AdminPageHelper::getCurrentPage() == 'dashboard') {
 
-            $transfers = [
+            $passThru['transfers'] = [
                 'pendingTransfers'      => Transfer::getByStatus('transfer', 'pending'),
                 'completedTransfers'    => Transfer::getByStatus('transfer', 'accepted'),
                 'deniedTransfers'       => Transfer::getByStatus('transfer', 'denied'),
@@ -38,11 +42,7 @@ class Admin {
                 'domainsTransferred'    => Transfer::getByStatus('domain', 'accepted'),
             ];
 
-            AdminPageHelper::outputPage([
-                'moduleLink'    => $vars['modulelink'],
-                'alerts'        => $alerts,
-                'transfers'         => $transfers
-            ]);
+            AdminPageHelper::outputPage($passThru);
 
 
 
@@ -52,20 +52,19 @@ class Admin {
 
             if ($_POST['settings_submit']) {
                 
-                $alerts['success'] = [
-                    'title'     => 'Settings Updated Successfully',
-                    'message'   => 'Your settings have been saved.'
+                $passThru['alerts'] = [
+                    'success' => [
+                        'title'     => 'Settings Updated Successfully',
+                        'message'   => 'Your settings have been saved.'
+                    ]
                 ];
 
             }
 
-            AdminPageHelper::outputPage([
-                'moduleLink'    => $vars['modulelink'],
-                'formData'      => $formData,
-                'alerts'        => $alerts
-            ]);
 
         }
+
+        AdminPageHelper::outputPage($passThru);
 
     }
 

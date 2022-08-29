@@ -239,6 +239,11 @@ class Database {
 
     }
 
+    public static function getAllPendingTransfers() {
+
+        return Capsule::table('mod_clienttransfers_transfers')->where('status', 'pending')->get();
+    }
+
     ## INVOICES
 
     public static function getClientInvoices($clientID, $status = 'Unpaid') {

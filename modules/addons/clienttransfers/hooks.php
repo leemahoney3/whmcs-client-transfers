@@ -15,10 +15,12 @@
  * @link       https://leemahoney.dev
  */
 
+use WHMCS\Carbon;
 use WHMCS\View\Menu\Item as MenuItem;
 
-use LMTech\ClientTransfers\Database\Database;
 use LMTech\ClientTransfers\Config\Config;
+use LMTech\ClientTransfers\Database\Database;
+use LMTech\ClientTransfers\Transfer\Transfer;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -87,6 +89,28 @@ function transfer_services_primary_navbar(MenuItem $primaryNavbar) {
 
 }
 
+function auto_cancel_requests($vars) {
+
+    $transferRequests = Database::getAllPendingTransfers();
+
+    foreach ($transferRequests as $transfer) {
+
+        $expiryDate = Carbon::parse($transfer->requested_at)->addDay(Config::get('expiry_days'));
+        $todaysDate = Carbon::now();
+
+        if ($todaysDate->gt($expiryDate)) {
+            Transfer::cancel($transfer->id);
+        }
+
+    }
+
+}
+
+
+
 add_hook('ClientAreaPrimaryNavbar', 1, 'transfer_services_primary_navbar');
 add_hook('ClientAreaPrimarySidebar', 1, 'transfer_service_domain_sidebar');
 
+if (Config::get('expiry_days') != 0) {
+    add_hook('AfterCronJob', 1, 'auto_cancel_requests');
+}
