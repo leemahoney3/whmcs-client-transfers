@@ -131,4 +131,23 @@ class Email {
 
     }
 
+    public static function sendWelcomeEmail($serviceData) {
+
+        $productDetails = Database::getProductDetails($serviceData->packageid);
+
+        if ($productDetails->welcomeemail != 0) {
+            
+            $result = localAPI('SendEmail', [
+                'messagename'   => Database::getEmailTemplateById($productDetails->welcomeemail)->name,
+                'id'            => $serviceData->id,
+            ]);
+
+            if ($result['result'] == 'error') {
+                Logger::add('email', 'error', 'Welcome email failed to send to client', $serviceData->userid);
+            } 
+
+        }
+
+    }
+
 }

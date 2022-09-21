@@ -99,6 +99,39 @@ class Config {
                     'Description'   => 'If enabled, logs will be generated for all actions taken through the module',
                     'Default'       => 'yes'
                 ],
+
+                # THE BELOW ARE NOT YET IMPLEMENTED ANYWHERE
+                'send_welcome_emails' => [
+                    'FriendlyName' => 'Resend Welcome Emails',
+                    'Type' => 'yesno',
+                    'Size' => 25,
+                    'Description' => 'If enabled and the service transferred has a related welcome email, it will be re-sent to the new client'
+                ],
+                'generate_due_invoices' => [
+                    'FriendlyName' => 'Generate Due Invoices',
+                    'Type' => 'yesno',
+                    'Size' => 25,
+                    'Description' => 'If enabled, due invoices will be generated on the new clients account after the transfer'
+                ],
+                'cancel_old_invoices' => [
+                    'FriendlyName' => 'Cancel Old Invoices',
+                    'Type' => 'yesno',
+                    'Size' => 25,
+                    'Description' => 'If enabled, all invoices related to the service will be cancelled on the old clients account. Non-related items will be split to a new invoice'
+                ],
+                'change_service_password' => [
+                    'FriendlyName' => 'Change Service Password',
+                    'Type' => 'yesno',
+                    'Size' => 25,
+                    'Description' => 'If enabled and the service supports it, the password will be changed after the service has been transferred'
+                ],
+                'delete_data_on_uninstall' => [
+                    'FriendlyName' => 'Delete Data On Uninstall',
+                    'Type' => 'yesno',
+                    'Size' => 25,
+                    'Description' => 'If enabled, all data will be deleted when the module is disabled'
+                ],
+
             ]
         ];
 

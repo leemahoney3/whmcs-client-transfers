@@ -46,18 +46,20 @@ class Client {
                     if (empty($serviceDomain) || empty($recipientEmail)) {
 
                         $page->setPage('init');
+
                         $page->setVar('message', [
-                            'type' => 'error',
-                            'content' => 'Whoops... Please ensure to fill in all fields.'
+                            'type'      => 'error',
+                            'content'   => 'Whoops... Please ensure to fill in all fields.'
                         ]);
                     
                     # Check the service or domain exists and the user ID matches up again, just to be sure
                     }else if ($type == 'domain' && !Database::getDomainById($id)->userid == $clientID) {
                         
                         $page->setPage('init');
+
                         $page->setVar('message', [
-                            'type' => 'error',
-                            'content' => 'Whoops... Either that domain does not exist, or it does not belong to you.'
+                            'type'      => 'error',
+                            'content'   => 'Whoops... Either that domain does not exist, or it does not belong to you.'
                         ]);
 
                         Logger::add('client', 'error', 'Client tried to initiate transfer on a domain that either does not belong to them, or does not exist (Service ID: ' . $id . ')', $clientID);
@@ -65,9 +67,10 @@ class Client {
                     } else if ($type == 'service' && !Database::getServiceById($id)->userid == $clientID) {
 
                         $page->setPage('init');
+
                         $page->setVar('message', [
-                            'type' => 'error',
-                            'content' => 'Whoops... Either that service does not exist, or it does not belong to you.'
+                            'type'      => 'error',
+                            'content'   => 'Whoops... Either that service does not exist, or it does not belong to you.'
                         ]);
 
                         Logger::add('client', 'error', 'Client tried to initiate transfer on a service that either does not belong to them, or does not exist (Service ID: ' . $id . ')', $clientID);
@@ -76,12 +79,13 @@ class Client {
                     } else if (!Database::checkClientEmail($recipientEmail)) {
 
                         $page->setPage('init');
+
                         $page->setMultiVars([
-                            'type' => $type,
-                            'id' => $id,
-                            'message' => [
-                                'type' => 'error',
-                                'content' => 'Whoops... No such client exists with that email address.'
+                            'type'      => $type,
+                            'id'        => $id,
+                            'message'   => [
+                                'type'      => 'error',
+                                'content'   => 'Whoops... No such client exists with that email address.'
                             ]
                         ]);
 
@@ -90,12 +94,13 @@ class Client {
                     } else if ($recipientemail == Database::getClientById($clientID)->email) {
 
                         $page->setPage('init');
+
                         $page->setMultiVars([
-                            'type' => $type,
-                            'id' => $id,
-                            'message' => [
-                                'type' => 'error',
-                                'content' => 'Whoops... You cannot transfer services/domains to yourself!'
+                            'type'      => $type,
+                            'id'        => $id,
+                            'message'   => [
+                                'type'      => 'error',
+                                'content'   => 'Whoops... You cannot transfer services/domains to yourself!'
                             ]
                         ]);
 
@@ -104,12 +109,13 @@ class Client {
                     } else if (Transfer::checkRelationshipExists($clientID, Database::getClientByEmail($recipientEmail)->id, $type, $id, ['pending'])) {
                         
                         $page->setPage('init');
+
                         $page->setMultiVars([
-                            'type' => $type,
-                            'id' => $id,
-                            'message' => [
-                                'type' => 'error',
-                                'content' => 'Whoops... A transfer for this service to that client is already in place.'
+                            'type'      => $type,
+                            'id'        => $id,
+                            'message'   => [
+                                'type'      => 'error',
+                                'content'   => 'Whoops... A transfer for this service to that client is already in place.'
                             ]
                         ]);
 
@@ -126,8 +132,8 @@ class Client {
                         $content    = (Config::get('expiry_days') != 0) ? 'Transfer initiated successfully. If the gaining client does not accept the transfer request within ' . $days . ', it will be cancelled.' : 'Transfer initiated successfully.';
 
                         $page->setVar('message', [
-                            'type' => 'success',
-                            'content' => $content
+                            'type'      => 'success',
+                            'content'   => $content
                         ]);
 
                         Logger::add('client', 'success', 'Client initiated transfer successfully. (Recipient Email: ' . $recipientEmail . ', Service ID: ' . $id . ')', $clientID);
@@ -140,9 +146,10 @@ class Client {
 
 
                         $page->setPage('home');
+
                         $page->setVar('message', [
-                            'type' => 'error',
-                            'content' => 'Whoops... Either that domain does not exist, or it does not belong to you.'
+                            'type'      => 'error',
+                            'content'   => 'Whoops... Either that domain does not exist, or it does not belong to you.'
                         ]);
 
                         Logger::add('client', 'error', 'Client tried to initiate transfer on a domain that either does not belong to them, or does not exist (Service ID: ' . $id . ')', $clientID);
@@ -150,9 +157,10 @@ class Client {
                     } else if ($type == 'service' && !Database::getServiceById($id)->userid == $clientID) {
 
                         $page->setPage('home');
+
                         $page->setVar('message', [
-                            'type' => 'error',
-                            'content' => 'Whoops... Either that service does not exist, or it does not belong to you.'
+                            'type'      => 'error',
+                            'content'   => 'Whoops... Either that service does not exist, or it does not belong to you.'
                         ]);
 
                         Logger::add('client', 'error', 'Client tried to initiate transfer on a service that either does not belong to them, or does not exist (Service ID: ' . $id . ')', $clientID);
@@ -160,9 +168,10 @@ class Client {
                     } else {
 
                         $page->setPage('init');
+
                         $page->setMultiVars([
-                            'type' => $type,
-                            'id' => $id
+                            'type'  => $type,
+                            'id'    => $id
                         ]);
 
                     }
@@ -188,8 +197,8 @@ class Client {
                 if ($transferDetails->losing_client_id != $clientID || $transferDetails->status != "pending") {
                     
                     $page->setVar('message', [
-                        'type' => 'error',
-                        'content' => 'Whoops... You are not authorized to perform that action.'
+                        'type'      => 'error',
+                        'content'   => 'Whoops... You are not authorized to perform that action.'
                     ]);
 
                     Logger::add('client', 'error', 'Client tried to cancel a transfer however it either does not belong to them, does not exist or has already been cancelled (Transfer ID: ' . $id . ')', $clientID);
@@ -199,8 +208,8 @@ class Client {
                     Transfer::cancel($id);
 
                     $page->setVar('message', [
-                        'type' => 'success',
-                        'content' => 'The transfer to ' . $transferDetails->gaining_client_email . ' has been cancelled.'
+                        'type'      => 'success',
+                        'content'   => 'The transfer to ' . $transferDetails->gaining_client_email . ' has been cancelled.'
                     ]);
 
                     Logger::add('client', 'success', 'Client cancelled service transfer (Transfer ID: ' . $id . ')', $clientID);
@@ -230,8 +239,8 @@ class Client {
                 if ($transferDetails->gaining_client_id != $clientID || $transferDetails->status != "pending") {
                     
                     $page->setVar('message', [
-                        'type' => 'error',
-                        'content' => 'Whoops... You are not authorized to perform that action.'
+                        'type'      => 'error',
+                        'content'   => 'Whoops... You are not authorized to perform that action.'
                     ]);
 
                     Logger::add('client', 'error', 'Client tried to deny a transfer however its either not for them, does not exist or has already been denied (Transfer ID: ' . $id . ')', $clientID);
@@ -241,8 +250,8 @@ class Client {
                     Transfer::deny($id);
 
                     $page->setVar('message', [
-                        'type' => 'success',
-                        'content' => 'The transfer from ' . $transferDetails->losing_client_email . ' has been denied.'
+                        'type'      => 'success',
+                        'content'   => 'The transfer from ' . $transferDetails->losing_client_email . ' has been denied.'
                     ]);
 
                     Logger::add('client', 'success', 'Client denied service transfer (Transfer ID: ' . $id . ')', $clientID);
@@ -273,8 +282,8 @@ class Client {
                 if ($transferDetails->gaining_client_id != $clientID || $transferDetails->status != "pending") {
                     
                     $page->setVar('message', [
-                        'type' => 'error',
-                        'content' => 'Whoops... You are not authorized to perform that action.'
+                        'type'      => 'error',
+                        'content'   => 'Whoops... You are not authorized to perform that action.'
                     ]);
 
                     Logger::add('client', 'error', 'Client tried to accept a transfer however its either not for them, does not exist or has already been accepted (Transfer ID: ' . $id . ')', $clientID);
@@ -284,8 +293,8 @@ class Client {
                     Transfer::accept($id);
 
                     $page->setVar('message', [
-                        'type' => 'success',
-                        'content' => 'The transfer from ' . $transferDetails->losing_client_email . ' has been accepted. This service/domain is now active on your account and an email with further instructions has been sent to you.'
+                        'type'      => 'success',
+                        'content'   => 'The transfer from ' . $transferDetails->losing_client_email . ' has been accepted. This service/domain is now active on your account and an email with further instructions has been sent to you.'
                     ]);
 
                     Logger::add('client', 'success', 'Client accepted service transfer (Transfer ID: ' . $id . ')', $clientID);

@@ -44,8 +44,6 @@ class Admin {
 
             AdminPageHelper::outputPage($passThru);
 
-
-
         }
 
         if (AdminPageHelper::getCurrentPage() == 'settings') {
@@ -60,7 +58,6 @@ class Admin {
                 ];
 
             }
-
 
         }
 

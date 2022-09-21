@@ -20,6 +20,7 @@ namespace LMTech\ClientTransfers\Client;
 use LMTech\ClientTransfers\Config\Config;
 use LMTech\ClientTransfers\Database\Database;
 use LMTech\ClientTransfers\Transfer\Transfer;
+use LMTech\ClientTransfers\Helpers\PaginationHelper;
 
 class ClientPage {
 
@@ -105,20 +106,48 @@ class ClientPage {
 
         if ($this->page == 'home') {
 
+            $pendingTransfersPagination = new PaginationHelper('pe', ['losing_client_id' => $this->clientID], [
+                'column' => 'status',
+                'data'   => ['pending']
+            ], 5);
+
+            $previousTransfersPagination = new PaginationHelper('pr', ['losing_client_id' => $this->clientID], [
+                'column' => 'status', 
+                'data'   => ['accepted', 'denied', 'cancelled']
+            ], 5);
+
             $this->setMultiVars([
-                'pendingTransfers'      => Transfer::getPending($this->clientID),
                 'incomingRequestsCount' => Transfer::countIncoming($this->clientID),
-                'previousTransfers'     => Transfer::getPrevious($this->clientID)
+        
+                'pendingTransfers'      => Transfer::outputPending($pendingTransfersPagination->data()),
+                'pendingTransfersLinks' => $pendingTransfersPagination->links(),
+        
+                'previousTransfers'     => Transfer::outputPrevious($previousTransfersPagination->data()),
+                'previousTransfersLinks' => $previousTransfersPagination->links(),
             ]);
 
         }
 
         if ($this->page == 'incoming') {
 
+            $incomingRequestsPagination = new PaginationHelper('in', ['gaining_client_id' => $this->clientID], [
+                'column'    => 'status',
+                'data'      => ['pending']
+            ], 5);
+
+            $previousRequestsPagination = new PaginationHelper('pr', ['gaining_client_id' => $this->clientID], [
+                'column'    => 'status',
+                'data'      => ['denied', 'accepted']
+            ], 5);
+
             $this->setMultiVars([
-                'incomingRequests'      => Transfer::getIncoming($this->clientID),
                 'incomingRequestsCount' => Transfer::countIncoming($this->clientID),
-                'previousRequests'      => Transfer::getPreviousRequests($this->clientID),
+
+                'incomingRequests'      => Transfer::outputIncoming($incomingRequestsPagination->data()),
+                'incomingRequestsLinks' => $incomingRequestsPagination->links(),
+
+                'previousRequests'      => Transfer::outputPreviousRequests($previousRequestsPagination->data()),
+                'previousRequestsLinks' => $previousRequestsPagination->links(),
             ]);
 
         }

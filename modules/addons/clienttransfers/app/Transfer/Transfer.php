@@ -22,16 +22,21 @@ use LMTech\ClientTransfers\Email\Email;
 use LMTech\ClientTransfers\Invoice\Invoice;
 use LMTech\ClientTransfers\Database\Database;
 use LMTech\ClientTransfers\Transfer\Transfer;
+use LMTech\ClientTransfers\Helpers\SubscriptionHelper;
 
 class Transfer {
 
+    # Create a transfer
     public static function create($clientID, $recipientEmail, $type, $id) {
         
+        # Grab current and gaining client details
         $currentClient = Database::getClientById($clientID);
         $gainingClient = Database::getClientByEmail($recipientEmail);
 
+        # Generate a random transfer token for acceptance through email
         $token = bin2hex(mcrypt_create_iv(22, MCRYPT_DEV_URANDOM));
 
+        # Insert details into the transfers table
         Database::insert([
             'losing_client_id'      => $clientID,
             'losing_client_name'    => $currentClient->firstname . ' ' . $currentClient->lastname,
@@ -47,20 +52,24 @@ class Transfer {
             'token'                 => $token
         ]);
 
+        # Get the service/domain for the email
         if ($type == 'domain') {
             $service_domain = Database::getDomainById($id)->domain;
         } else {
             $service_domain = Database::getServiceById($id)->name . ' for ' . Database::getServiceById($id)->domain;
         }
 
+        # Get the client area link
         $url = Setting::getValue('SystemURL') . '/index.php?m=clienttransfers';
 
+        # Send Email to the losing client
         Email::send('CT_Service Transfer Request Submitted - Losing Client', $currentClient->id, [
             'gaining_client_email'  => $recipientEmail,
             'service_type'          => $type,
             'service_domain'        => $service_domain
         ]);
 
+        # Send Email to the gaining client
         Email::send('CT_New Service Transfer Request - Gaining Client', $gainingClient->id, [
             'losing_client_name'    => $currentClient->firstname . ' ' . $currentClient->lastname,
             'losing_client_email'   => $currentClient->email,
@@ -73,28 +82,34 @@ class Transfer {
 
     }
 
+    # Cancel a transfer
     public static function cancel($id) {
 
+        # Update the transfers table
         Database::update($id, [
             'status'        => 'cancelled',
             'completed_at'  => date('Y-m-d H:i:s'),
             'token'         => ''
         ]);
 
+        # Get the transfer details
         $transferDetails = Transfer::getById($id);
 
+        # Get the service/domain for the email
         if ($type == 'domain') {
             $service_domain = Database::getDomainById($transferDetails->domain_id)->domain;
         } else {
             $service_domain = Database::getServiceById($transferDetails->service_id)->name . ' for ' . Database::getServiceById($transferDetails->service_id)->domain;
         }
 
+        # Send Email to the losing client
         Email::send('CT_Service Transfer Request Cancelled - Losing Client', $transferDetails->losing_client_id, [
             'gaining_client_email'  => $transferDetails->gaining_client_email,
             'service_type'          => $transferDetails->type,
             'service_domain'        => $service_domain
         ]);
 
+        # Send Email to the gaining client
         Email::send('CT_Service Transfer Request Cancelled - Gaining Client', $transferDetails->gaining_client_id, [
             'losing_client_name'    => $transferDetails->losing_client_name,
             'losing_client_email'   => $transferDetails->losing_client_email,
@@ -104,41 +119,34 @@ class Transfer {
 
     }
 
+    # Deny the transfer request
     public static function deny($id) {
 
+        # Update the transfers table
         Database::update($id, [
             'status'        => 'denied',
             'completed_at'  => date('Y-m-d H:i:s'),
             'token'         => ''
         ]);
 
+        # Get the transfer details
         $transferDetails = Transfer::getById($id);
 
+        # Get the service/domain for the email
         if ($type == 'domain') {
             $service_domain = Database::getDomainById($transferDetails->domain_id)->domain;
         } else {
             $service_domain = Database::getServiceById($transferDetails->service_id)->name . ' for ' . Database::getServiceById($transferDetails->service_id)->domain;
         }
 
-        
-        // die(print_r([
-        //     'losing_client_id'      => $transferDetails->losing_client_id,
-        //     'gaining_client_email'  => $transferDetails->gaining_client_email,
-        //     'service_type'          => $transferDetails->type,
-        //     'service_domain'        => $service_domain,
-        //     'gaining_client_id'     => $transferDetails->gaining_client_id,
-        //     'losing_client_name'    => $transferDetails->losing_client_name,
-        //     'losing_client_email'   => $transferDetails->losing_client_email,
-        //     'service_type'          => $transferDetails->type,
-        //     'service_domain'        => $service_domain
-        // ]));
-
+        # Send Email to the losing client
         Email::send('CT_Service Transfer Request Denied - Losing Client', $transferDetails->losing_client_id, [
             'gaining_client_email'  => $transferDetails->gaining_client_email,
             'service_type'          => $transferDetails->type,
             'service_domain'        => $service_domain
         ]);
 
+        # Send Email to the gaining client
         Email::send('CT_Service Transfer Request Denied - Gaining Client', $transferDetails->gaining_client_id, [
             'losing_client_name'    => $transferDetails->losing_client_name,
             'losing_client_email'   => $transferDetails->losing_client_email,
@@ -148,12 +156,13 @@ class Transfer {
 
     }
 
-
-
+    # Accept the transfer request
     public static function accept($id) {
 
+        # Grab the transfer details
         $transferDetails = self::getById($id);
 
+        # Check type and run relevant updates (e.g. reassign addons, handle invoices)
         if ($transferDetails->type == 'service') {
 
             # Still need to handle invoices!
@@ -172,6 +181,14 @@ class Transfer {
 
         }
 
+        # Cancel any subscription related to the service
+        $serviceDetails = Database::getServiceById($transferDetails->service_id);
+
+        if (!empty($serviceDetails->subscriptionid)) {
+            SubscriptionHelper::cancel($serviceDetails);
+        }
+
+        # Update the transfers table
         Database::update($id, [
             'status'        => 'accepted',
             'completed_at'  => date('Y-m-d H:i:s'),
@@ -183,12 +200,14 @@ class Transfer {
         # Generate new invoices on the gaining clients account
         Invoice::generateDue($transferDetails->gaining_client_id);
 
+        # Send Email to the losing client
         Email::send('CT_Service Transfer Request Completed - Losing Client', $transferDetails->losing_client_id, [
             'gaining_client_email'  => $transferDetails->gaining_client_email,
             'service_type'          => $transferDetails->type,
             'service_domain'        => $service_domain
         ]);
 
+        # Send Email to the gaining client
         Email::send('CT_Service Transfer Request Completed - Gaining Client', $transferDetails->gaining_client_id, [
             'losing_client_name'    => $transferDetails->losing_client_name,
             'losing_client_email'   => $transferDetails->losing_client_email,
@@ -196,29 +215,36 @@ class Transfer {
             'service_domain'        => $service_domain
         ]);
 
+        Email::sendWelcomeEmail($serviceDetails);
+
     }
 
+    # Get transfer requests by the ID provided
     public static function getById($id) {
-
         return Database::getTableById($id);
-
     }
 
+    # Get transfer requests by the token provided
     public static function getByToken($token) {
         return Database::getTableByField('token', $token);
     }
 
+    # Check if a relationship exists (i.e. to check for a valid transfer)
     public static function checkRelationshipExists($clientID, $recipientID, $type, $id, $status) {
         return Database::getTransfersByRelationship($clientID, $recipientID, $type, $id, $status);
     }
 
-    public static function getPending($clientID) {
+    # Count incoming transfer requests based on the client's ID
+    public static function countIncoming($clientID) {
+        return count(Database::getTransfersByClientID('gaining_client_id', $clientID, ['pending']));
+    }
+
+    # Format the pending transfer requests data from the database for the table in the client area
+    public static function outputPending($data) {
 
         $pendingTransfers = [];
-                
-        $getPendingTransfers = Database::getTransfersByClientID('losing_client_id', $clientID, ['pending']);
 
-        foreach ($getPendingTransfers as $key => $pendingTransfer) {
+        foreach ($data as $key => $pendingTransfer) {
 
             $pendingTransfers[$key] = [
                 'id'                => $pendingTransfer->id,
@@ -239,14 +265,12 @@ class Transfer {
 
     }
 
-    public static function getPrevious($clientID) {
+    # Format the previous transfers data from the database for the table in the client area
+    public static function outputPrevious($data) {
 
         $previousTransfers = [];
-                
-        $getPreviousTransfers = Database::getTransfersByClientID('losing_client_id', $clientID, ['accepted', 'denied', 'cancelled']);
-        
 
-        foreach ($getPreviousTransfers as $key => $previousTransfer) {
+        foreach ($data as $key => $previousTransfer) {
 
             $previousTransfers[$key] = [
                 'id'                => $previousTransfer->id,
@@ -269,13 +293,12 @@ class Transfer {
 
     }
 
-    public static function getIncoming($clientID) {
+    # Format the incoming requests data from the database for the table in the client area
+    public static function outputIncoming($data) {
 
         $incomingRequests = [];
-                
-        $getIncomingRequests = Database::getTransfersByClientID('gaining_client_id', $clientID, ['pending']);
 
-        foreach ($getIncomingRequests as $key => $incomingRequest) {
+        foreach ($data as $key => $incomingRequest) {
 
             $incomingRequests[$key] = [
                 'id'                => $incomingRequest->id,
@@ -293,20 +316,15 @@ class Transfer {
         }
 
         return $incomingRequests;
-
+        
     }
 
-    public static function countIncoming($clientID) {
-        return count(self::getIncoming($clientID));
-    }
-
-    public static function getPreviousRequests($clientID) {
+    # Format the previous requests data from the database for the table in the client area
+    public static function outputPreviousRequests($data) {
 
         $previousRequests = [];
-                
-        $getPreviousRequests = Database::getTransfersByClientID('gaining_client_id', $clientID, ['denied', 'accepted']);
 
-        foreach ($getPreviousRequests as $key => $previousRequest) {
+        foreach ($data as $key => $previousRequest) {
 
             $previousRequests[$key] = [
                 'id'                => $previousRequest->id,
@@ -329,28 +347,7 @@ class Transfer {
 
     }
 
-    protected static function formatStatus($status) {
-
-        switch ($status) {
-            case 'pending':
-                return '<span class="label label-warning">Pending</span>';
-                break;
-            
-            case 'accepted':
-                return '<span class="label label-success">Accepted</span>';
-                break;
-
-            case 'denied':
-                return '<span class="label label-danger">Denied</span>';
-                break;
-
-            case 'cancelled':
-                return '<span class="label label-default">Cancelled</span>';
-                break;
-        }
-
-    }
-
+    # Get transfers by their status (for admin dashboard)
     public static function getByStatus($type, $status) {
 
         if ($type == 'transfer') {
@@ -381,6 +378,29 @@ class Transfer {
             return Database::getTransfers($status, 'service');
         } else if ($type == 'domain') {
             return Database::getTransfers($status, 'domain');
+        }
+
+    }
+
+    # Return the status in a formatted label
+    protected static function formatStatus($status) {
+
+        switch ($status) {
+            case 'pending':
+                return '<span class="label label-warning">Pending</span>';
+                break;
+            
+            case 'accepted':
+                return '<span class="label label-success">Accepted</span>';
+                break;
+
+            case 'denied':
+                return '<span class="label label-danger">Denied</span>';
+                break;
+
+            case 'cancelled':
+                return '<span class="label label-default">Cancelled</span>';
+                break;
         }
 
     }

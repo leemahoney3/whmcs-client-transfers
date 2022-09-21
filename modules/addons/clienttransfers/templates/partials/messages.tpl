@@ -1,3 +1,10 @@
+{if $currentPage != 'home'}
+    <a href="index.php?m=clienttransfers" class="btn btn-default float-right">Dashboard</a>
+    <div class="clearfix"></div>
+    <br />
+{/if}
+
+
 {if $message and $message.type eq 'error'}
     <div class="alert alert-danger alert-dismissible show" role="alert">
         {$message.content}
@@ -16,13 +23,13 @@
     </div>
 {/if}
 
-{if $currentPage != 'home'}
-    <a href="index.php?m=clienttransfers" class="btn btn-default pull-right">Dashboard</a>
-{/if}
-
 <!-- Good job, WHMCS. -->
 <style>
-.label {
-    border-radius: 0.25em !important;
-}
+    .label {
+        border-radius: 0.25em !important;
+    }
+
+    .bs-placeholder {
+        border: 1px solid #ccc;
+    }
 </style>

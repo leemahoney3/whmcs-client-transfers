@@ -98,8 +98,8 @@ class Invoice {
                 foreach ($related as $itemID) {
                     $item = Database::getInvoiceItem($itemID);
                     Database::updateInvoiceItem($itemID, [
-                        'relid' => 0,
-                        'description' => '(Transfered Away) ' . $item->description
+                        'relid'         => 0,
+                        'description'   => '(Transfered Away) ' . $item->description
                     ]);
                 }
 
@@ -137,16 +137,15 @@ class Invoice {
 
         $subTotal = number_format($subTotal, 2, '.', '');
 
-        $tax = $subTotal * $invoice->taxrate / 100;
-        $tax2 = $subTotal * $invoice->taxrate2 / 100;
-
-        $total = ($subTotal + $tax + $tax2) - $invoice->credit;
+        $tax    = $subTotal * $invoice->taxrate / 100;
+        $tax2   = $subTotal * $invoice->taxrate2 / 100;
+        $total  = ($subTotal + $tax + $tax2) - $invoice->credit;
 
         Database::updateInvoice($invoice->id, [
-            'subTotal' => $subTotal,
-            'tax' => $tax,
-            'tax2' => $tax2,
-            'total' => $total
+            'subTotal'  => $subTotal,
+            'tax'       => $tax,
+            'tax2'      => $tax2,
+            'total'     => $total
         ]);
 
     }
