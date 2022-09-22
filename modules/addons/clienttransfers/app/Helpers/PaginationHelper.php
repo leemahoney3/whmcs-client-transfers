@@ -22,19 +22,18 @@ use WHMCS\Database\Capsule;
 class PaginationHelper {
 
     private $pageName;
+    private $pages;
+    private $page;
+    
     private $limit;
+    private $offset;
 
     private $table;
     private $whereArray;
     private $whereInArray;
 
     private $recordCount;
-    private $pages;
-
-    private $page;
-
-    private $offset;
-
+   
     public function __construct($pageName = 'page', $whereArray = [], $whereInArray = [], $limit = 2, $table = 'mod_clienttransfers_transfers') {
 
         $this->pageName     = $pageName;
@@ -45,10 +44,9 @@ class PaginationHelper {
         $this->limit        = $limit;
         $this->recordCount  = Capsule::table($table)->where($whereArray)->whereIn($whereInArray['column'], $whereInArray['data'])->count();
         $this->pages        = $this->recordCount / $limit;
-
         $this->page         = (int) isset($_GET[$pageName]) ? $_GET[$pageName] : 1;
-
         $this->offset       = ($this->page - 1) * $this->limit;
+        
     }
 
     # Output data based on properties
@@ -121,7 +119,6 @@ class PaginationHelper {
 
         return $html;
 
-
     }
 
     private function parseURL($parameter, $value) { 
@@ -133,23 +130,26 @@ class PaginationHelper {
         
         foreach($_GET as $key => $val) { 
             
-            if($key != $parameter) { 
+            if($key == $parameter) {
+                continue;
+            }
                 
-                if(!$firstRun) { 
-                    $output .= '&'; 
-                } else { 
-                    $firstRun = false; 
-                }
+            if(!$firstRun) { 
+                $output .= '&';
+            } else {
+                $firstRun = false;
+            }
 
-                $output .= $key . '=' . urlencode($val); 
-             }
+            $output .= $key . '=' . urlencode($val);
 
         } 
     
-        if(!$firstRun) 
+        if(!$firstRun) {
             $output .= '&'; 
+        }
         
         $output .= $parameter . '=' . urlencode($value); 
+        
         return htmlentities($output); 
     
     }
