@@ -30,14 +30,14 @@ class Transfer {
     public static function create($clientID, $recipientEmail, $type, $id) {
         
         # Grab current and gaining client details
-        $currentClient = Database::getClientById($clientID);
-        $gainingClient = Database::getClientByEmail($recipientEmail);
+        $currentClient = \WHMCS\User\Client::where('id', $clientID)->first();
+        $gainingClient = \WHMCS\User\Client::where('id', $recipientEmail)->first();
 
         # Generate a random transfer token for acceptance through email
         $token = bin2hex(mcrypt_create_iv(22, MCRYPT_DEV_URANDOM));
 
         # Insert details into the transfers table
-        Database::insert([
+        TransferMode::insert([
             'losing_client_id'      => $clientID,
             'losing_client_name'    => $currentClient->firstname . ' ' . $currentClient->lastname,
             'losing_client_email'   => $currentClient->email,
@@ -54,9 +54,9 @@ class Transfer {
 
         # Get the service/domain for the email
         if ($type == 'domain') {
-            $service_domain = Database::getDomainById($id)->domain;
+            $service_domain = \WHMCS\Domain\Domain::where('id', $id)->first()->domain;
         } else {
-            $service_domain = Database::getServiceById($id)->name . ' for ' . Database::getServiceById($id)->domain;
+            $service_domain = \WHMCS\Service\Service::where('id', $id)->first()->name . ' for ' . \WHMCS\Service\Service::where('id', $id)->first()->domain;
         }
 
         # Get the client area link
@@ -379,6 +379,31 @@ class Transfer {
         } else if ($type == 'domain') {
             return Database::getTransfers($status, 'domain');
         }
+
+    }
+
+    public static function outputByStatus($data) {
+
+        $transfers = [];
+
+        foreach ($data as $key => $transfer) {
+
+            $transfers[$key] = [
+                'id' => $transfer->id,
+                'type' => $transfer->type,
+                'losing_client' => Database::getClientById($transfer->losing_client_id),
+                'gaining_client' => Database::getClientById($transfer->gaining_client_id),
+                'requested_at' => date('d/m/Y @ H:i:s', strtotime($transfer->requested_at)),
+                'completed_at' => date('d/m/Y @ H:i:s', strtotime($transfer->requested_at)),
+                'service_domain' => ($transfer->type == 'domain') ? 'Domain - ' . Database::getDomainById($transfer->domain_id)->domain : Database::getServiceById($transfer->service_id)->name . ' - ' . Database::getServiceById($transfer->service_id)->domain,
+                'service_domain_link' => ($transfer->type == 'domain') ? "clientsdomains.php?userid=" . Database::getDomainById($transfer->domain_id)->userid . "&id={$transfer->domain_id}" : "clientsservices.php?userid=" . Database::getServiceById($transfer->service_id)->userid . "&id={$transfer->service_id}",
+                'service_id' => $transfer->service_id,
+                'domain_id' => $transfer->domain_id
+            ];
+
+        }
+
+        return $transfers;
 
     }
 

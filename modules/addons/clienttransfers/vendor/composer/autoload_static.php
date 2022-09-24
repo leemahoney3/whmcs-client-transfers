@@ -22,10 +22,22 @@ class ComposerStaticInit71a497119305c2404b2c6e4383d6a7e5
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'LMTech\\ClientTransfers\\Admin\\Admin' => __DIR__ . '/../..' . '/app/Admin/Admin.php',
         'LMTech\\ClientTransfers\\App' => __DIR__ . '/../..' . '/app/App.php',
         'LMTech\\ClientTransfers\\Client\\Client' => __DIR__ . '/../..' . '/app/Client/Client.php',
+        'LMTech\\ClientTransfers\\Client\\ClientPage' => __DIR__ . '/../..' . '/app/Client/ClientPage.php',
         'LMTech\\ClientTransfers\\Config\\Config' => __DIR__ . '/../..' . '/app/Config/Config.php',
         'LMTech\\ClientTransfers\\Database\\Database' => __DIR__ . '/../..' . '/app/Database/Database.php',
+        'LMTech\\ClientTransfers\\Email\\Email' => __DIR__ . '/../..' . '/app/Email/Email.php',
+        'LMTech\\ClientTransfers\\Helpers\\AdminPageHelper' => __DIR__ . '/../..' . '/app/Helpers/AdminPageHelper.php',
+        'LMTech\\ClientTransfers\\Helpers\\PaginationHelper' => __DIR__ . '/../..' . '/app/Helpers/PaginationHelper.php',
+        'LMTech\\ClientTransfers\\Helpers\\RedirectHelper' => __DIR__ . '/../..' . '/app/Helpers/RedirectHelper.php',
+        'LMTech\\ClientTransfers\\Helpers\\SubscriptionHelper' => __DIR__ . '/../..' . '/app/Helpers/SubscriptionHelper.php',
+        'LMTech\\ClientTransfers\\Helpers\\TemplateHelper' => __DIR__ . '/../..' . '/app/Helpers/TemplateHelper.php',
+        'LMTech\\ClientTransfers\\Invoice\\Invoice' => __DIR__ . '/../..' . '/app/Invoice/Invoice.php',
+        'LMTech\\ClientTransfers\\Logger\\Logger' => __DIR__ . '/../..' . '/app/Logger/Logger.php',
+        'LMTech\\ClientTransfers\\Models\\TransferModel' => __DIR__ . '/../..' . '/app/Models/TransferModel.php',
+        'LMTech\\ClientTransfers\\Transfer\\Transfer' => __DIR__ . '/../..' . '/app/Transfer/Transfer.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

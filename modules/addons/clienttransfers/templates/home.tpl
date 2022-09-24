@@ -36,11 +36,11 @@
                         {else}
                             {foreach $pendingTransfers as $transfer}
                                 <tr>
-                                    <td class="align-middle">{$transfer.id}</td>
-                                    <td class="align-middle">{if $transfer.type eq 'domain'}<b>Domain</b> - {$transfer.domain}{elseif $transfer.type eq 'service'}<b>Service</b> - {$transfer.service}{/if}</td>
-                                    <td class="align-middle">{$transfer.target_account}</td>
-                                    <td class="align-middle">{$transfer.requested}</td>
-                                    <td class="align-middle"><a href="index.php?m=clienttransfers&action=cancel&id={$transfer.id}" class="btn btn-danger">Cancel</a></td>
+                                    <td class="align-middle">{$transfer->id}</td>
+                                    <td class="align-middle">{if $transfer->type eq 'domain'}<b>Domain</b> - {$transfer->domain->domain}{elseif $transfer->type eq 'service'}<b>Service</b> - {$transfer->service->product->name} ({$transfer->service->domain}){/if}</td>
+                                    <td class="align-middle">{$transfer->gaining_client_email}</td>
+                                    <td class="align-middle">{$transfer->requestedAt()}</td>
+                                    <td class="align-middle"><a href="index.php?m=clienttransfers&action=cancel&id={$transfer->id}" class="btn btn-danger">Cancel</a></td>
                                 </tr>
                             {/foreach}
                         {/if}
@@ -82,12 +82,12 @@
                         {else}
                             {foreach $previousTransfers as $transfer}
                                 <tr>
-                                    <td class="align-middle">{$transfer.id}</td>
-                                    <td class="align-middle">{if $transfer.type eq 'domain'}<b>Domain</b> - {$transfer.domain}{elseif $transfer.type eq 'service'}<b>Service</b> - {$transfer.service}{/if}</td>
-                                    <td class="align-middle">{$transfer.target_account}</td>
-                                    <td class="align-middle">{$transfer.status}</td>
-                                    <td class="align-middle">{$transfer.requested}</td>
-                                    <td class="align-middle">{$transfer.completed}</td>
+                                    <td class="align-middle">{$transfer->id}</td>
+                                    <td class="align-middle">{if $transfer->type eq 'domain'}<b>Domain</b> - {$transfer->domain->domain}{elseif $transfer->type eq 'service'}<b>Service</b> - {$transfer->service->product->name} ({$transfer->service->domain}){/if}</td>
+                                    <td class="align-middle">{$transfer->gaining_client_email}</td>
+                                    <td class="align-middle">{$transfer->getStatus()}</td>
+                                    <td class="align-middle">{$transfer->requestedAt()}</td>
+                                    <td class="align-middle">{$transfer->completedAt()}</td>
                                 </tr>
                             {/foreach}
                         {/if}

@@ -7,8 +7,20 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'Composer\\InstalledVersions' => $vendorDir . '/composer/InstalledVersions.php',
+    'LMTech\\ClientTransfers\\Admin\\Admin' => $baseDir . '/app/Admin/Admin.php',
     'LMTech\\ClientTransfers\\App' => $baseDir . '/app/App.php',
     'LMTech\\ClientTransfers\\Client\\Client' => $baseDir . '/app/Client/Client.php',
+    'LMTech\\ClientTransfers\\Client\\ClientPage' => $baseDir . '/app/Client/ClientPage.php',
     'LMTech\\ClientTransfers\\Config\\Config' => $baseDir . '/app/Config/Config.php',
     'LMTech\\ClientTransfers\\Database\\Database' => $baseDir . '/app/Database/Database.php',
+    'LMTech\\ClientTransfers\\Email\\Email' => $baseDir . '/app/Email/Email.php',
+    'LMTech\\ClientTransfers\\Helpers\\AdminPageHelper' => $baseDir . '/app/Helpers/AdminPageHelper.php',
+    'LMTech\\ClientTransfers\\Helpers\\PaginationHelper' => $baseDir . '/app/Helpers/PaginationHelper.php',
+    'LMTech\\ClientTransfers\\Helpers\\RedirectHelper' => $baseDir . '/app/Helpers/RedirectHelper.php',
+    'LMTech\\ClientTransfers\\Helpers\\SubscriptionHelper' => $baseDir . '/app/Helpers/SubscriptionHelper.php',
+    'LMTech\\ClientTransfers\\Helpers\\TemplateHelper' => $baseDir . '/app/Helpers/TemplateHelper.php',
+    'LMTech\\ClientTransfers\\Invoice\\Invoice' => $baseDir . '/app/Invoice/Invoice.php',
+    'LMTech\\ClientTransfers\\Logger\\Logger' => $baseDir . '/app/Logger/Logger.php',
+    'LMTech\\ClientTransfers\\Models\\TransferModel' => $baseDir . '/app/Models/TransferModel.php',
+    'LMTech\\ClientTransfers\\Transfer\\Transfer' => $baseDir . '/app/Transfer/Transfer.php',
 );

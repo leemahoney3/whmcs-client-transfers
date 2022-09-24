@@ -22,6 +22,7 @@ use LMTech\ClientTransfers\Logger\Logger;
 use LMTech\ClientTransfers\Client\ClientPage;
 use LMTech\ClientTransfers\Database\Database;
 use LMTech\ClientTransfers\Transfer\Transfer;
+use LMTech\ClientTransfers\Models\TransferModel;
 
 class Client {
 
@@ -76,7 +77,7 @@ class Client {
                         Logger::add('client', 'error', 'Client tried to initiate transfer on a service that either does not belong to them, or does not exist (Service ID: ' . $id . ')', $clientID);
 
                     # Check the recipients email is actually a client
-                    } else if (!Database::checkClientEmail($recipientEmail)) {
+                    } else if (!\WHMCS\User\Client::where('email', $recipientEmail)->first()) {
 
                         $page->setPage('init');
 
@@ -91,7 +92,7 @@ class Client {
 
                         Logger::add('client', 'error', 'Client tried to initiate transfer to a client that does not exist (Recipient Email: ' . $recipientEmail . ', Service ID: ' . $id . ')', $clientID);
 
-                    } else if ($recipientemail == Database::getClientById($clientID)->email) {
+                    } else if ($recipientemail == \WHMCS\User\Client::where('id', $clientID)->first()->email) {
 
                         $page->setPage('init');
 
@@ -106,7 +107,7 @@ class Client {
 
                         Logger::add('client', 'error', 'Client tried to initiate transfer to themselves (Service ID: ' . $id . ')', $clientID);
 
-                    } else if (Transfer::checkRelationshipExists($clientID, Database::getClientByEmail($recipientEmail)->id, $type, $id, ['pending'])) {
+                    } else if (TransferModel::getByRelationship($clientID, \WHMCS\User\Client::where('email', $recipientEmail)->first()->id, $type, $id, ['pending'])->count()) {
                         
                         $page->setPage('init');
 
@@ -124,7 +125,7 @@ class Client {
                     } else {
 
                         # Create transfer.
-                        Transfer::create($clientID, $recipientEmail, $type, $id);
+                        TransferModel::create($clientID, $recipientEmail, $type, $id);
                         
                         $page->setPage('home');
 

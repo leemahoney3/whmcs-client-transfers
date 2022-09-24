@@ -23,9 +23,9 @@ class PaginationHelper {
 
     private $pageName;
     private $limit;
+    private $model;
 
-    private $table;
-    private $whereArray;
+    private $where;
     private $whereInArray;
 
     private $recordCount;
@@ -35,30 +35,46 @@ class PaginationHelper {
 
     private $offset;
 
-    public function __construct($pageName = 'page', $whereArray = [], $whereInArray = [], $limit = 2, $table = 'mod_clienttransfers_transfers') {
+    public function __construct($pageName = 'page', $where = [], $limit = 10, $model, $whereInArray = []) {
 
         $this->pageName     = $pageName;
-        $this->table        = $table;
-        $this->whereArray   = $whereArray;
-        $this->whereInArray = $whereInArray;
-        $this->offset       = $offset;
+        $this->where        = $where;
         $this->limit        = $limit;
-        $this->recordCount  = Capsule::table($table)->where($whereArray)->whereIn($whereInArray['column'], $whereInArray['data'])->count();
-        $this->pages        = $this->recordCount / $limit;
+        $this->model        = $model;
+        
+        $this->whereInArray = $whereInArray;
 
-        $this->page         = (int) isset($_GET[$pageName]) ? $_GET[$pageName] : 1;
+        $this->recordCount  = $this->getRecordCount();
+        $this->pages        = $this->recordCount / $this->limit;
+
+        $this->page         = (int) (AdminPageHelper::getAttribute($this->pageName) != null) ? AdminPageHelper::getAttribute($this->pageName) : 1;
 
         $this->offset       = ($this->page - 1) * $this->limit;
+
     }
 
     # Output data based on properties
     public function data() {
 
-        if (is_null($this->recordCount)) {
-            return;
-        }
+        if (empty($this->where) && empty($this->whereInArray)) {
+
+            $result = $this->model::offset($this->offset)->limit($this->limit);
         
-        return Capsule::table('mod_clienttransfers_transfers')->where($this->whereArray)->whereIn($this->whereInArray['column'], $this->whereInArray['data'])->offset($this->offset)->limit($this->limit)->get();
+        } else if (!empty($this->where) && empty($this->whereInArray)) {
+        
+            $result = $this->model::where($this->where)->offset($this->offset)->limit($this->limit);
+        
+        } else if (empty($this->where) && !empty($this->whereInArray)) {
+        
+            $result = $this->model::where($this->where)->whereIn($this->whereInArray[0], $this->whereInArray[1])->offset($this->offset)->limit($this->limit);
+            
+        } else {
+        
+            $result = $this->model::where($this->where)->whereIn($this->whereInArray[0], $this->whereInArray[1])->offset($this->offset)->limit($this->limit);
+        
+        }
+
+        return $result->get()->sortByDesc('requested_at');
 
     }
 
@@ -69,20 +85,20 @@ class PaginationHelper {
 
         if ($this->recordCount < ($this->limit + 1)) {
             $html .= '<div class="clearfix">';
-            $html .= '<div class="text-sm-left float-left">Showing <b>' . $this->recordCount . '</b> out of <b>' . $this->recordCount . '</b> records</div>';
+            $html .= '<div class="text-sm-left float-left pull-left">Showing <b>' . $this->recordCount . '</b> out of <b>' . $this->recordCount . '</b> records</div>';
             $html .= '</div>'; 
         }
 
         if ($this->recordCount > $this->limit) {
             $html .= '<div class="clearfix">';
 
-            if (($this->page * $this->limit) < $this->recordCount) {
-                $html .= '<div class="text-sm-left float-left">Showing <b>' . ($this->page * $this->limit) . '</b> out of <b>' . $this->recordCount . '</b> records</div>';
-            } else {
-                $html .= '<div class="text-sm-left float-left">Showing <b>' . $this->recordCount . '</b> out of <b>' . $this->recordCount . '</b> records</div>';
-            }
+            //if (($this->page * $this->limit) < $this->recordCount) {
+                $html .= '<div class="text-sm-left float-left pull-left">Showing <b>' . $this->offset . '</b> to <b>' . ($this->page * $this->limit) . '</b> out of <b>' . $this->recordCount . '</b> records</div>';
+            //} else {
+              //  $html .= '<div class="text-sm-left float-left pull-left">Showing <b>' . $this->recordCount . '</b> out of <b>' . $this->recordCount . '</b> records</div>';
+            //}
 
-            $html .= '<ul style="margin: 0px 0px" class="pagination float-right">';
+            $html .= '<ul style="margin: 0px 0px" class="pagination float-right pull-right">';
             
             if ($this->page < 2) {
                 $html .= '<li class="page-item disabled"><a href="#" class="page-link">Previous</a></li>';
@@ -124,6 +140,10 @@ class PaginationHelper {
 
     }
 
+    public function recordCount() {
+        return $this->recordCount;
+    }
+
     private function parseURL($parameter, $value) { 
         
         $params = []; 
@@ -152,6 +172,30 @@ class PaginationHelper {
         $output .= $parameter . '=' . urlencode($value); 
         return htmlentities($output); 
     
+    }
+
+    private function getRecordCount() {
+
+        if (empty($this->where) && empty($this->whereInArray)) {
+
+            $result = $this->model::offset($this->offset)->limit($this->limit);
+        
+        } else if (!empty($this->where) && empty($this->whereInArray)) {
+        
+            $result = $this->model::where($this->where)->offset($this->offset)->limit($this->limit);
+        
+        } else if (empty($this->where) && !empty($this->whereInArray)) {
+        
+            $result = $this->model::where($this->where)->whereIn($this->whereInArray[0], $this->whereInArray[1])->offset($this->offset)->limit($this->limit);
+            
+        } else {
+        
+            $result = $this->model::where($this->where)->whereIn($this->whereInArray[0], $this->whereInArray[1])->offset($this->offset)->limit($this->limit);
+        
+        }
+
+        return $result->count();
+
     }
 
 

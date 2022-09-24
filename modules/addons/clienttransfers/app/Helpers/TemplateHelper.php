@@ -37,6 +37,8 @@ class TemplateHelper {
         $smarty->caching        = false;
         $smarty->compile_dir    = $GLOBALS['templates_compiledir'];
         $smarty->template_dir   = self::$baseDir;
+        $smarty->registerClass("PageHelper", "\LMTech\ClientTransfers\Helpers\AdminPageHelper");
+
 
         if (self::checkExists($templateName)) {
            

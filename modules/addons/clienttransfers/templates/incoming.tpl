@@ -5,7 +5,7 @@
 <div class="card">
     <div class="card-body">
         <div class="card-title">
-            Incoming Transfer Requests ({$incomingRequestsCount})
+            Incoming Transfer Requests ({$incomingRequests.count})
         </div>
         <p>View and decide on your incoming transfers below.</p>
         <div class="table-responsive">
@@ -20,18 +20,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {if !$incomingRequests}
+                    {if $incomingRequests.count == 0}
                         <tr>
                             <td colspan="6"><p class="text-center">No records found</p></td>
                         </tr>
                     {else}
-                        {foreach $incomingRequests as $request}
+                        {foreach $incomingRequests.data as $request}
                             <tr>
-                                <td class="align-text-bottom">{$request.id}</td>
-                                <td class="align-text-bottom">{if $request.type eq 'domain'}<b>Domain</b> - {$request.domain}{elseif $request.type eq 'service'}<b>Service</b> - {$request.service}{/if}</td>
-                                <td class="align-text-bottom">{$request.requested_by}</td>
-                                <td class="align-text-bottom">{$request.requested_date}</td>
-                                <td class="align-text-bottom"><a href="index.php?m=clienttransfers&action=accept&id={$request.id}" class="btn btn-success">Accept</a> <a href="index.php?m=clienttransfers&action=deny&id={$request.id}" class="btn btn-danger">Deny</a></td>
+                                <td class="align-text-bottom">{$request->id}</td>
+                                <td class="align-middle">{if $request->type eq 'domain'}<b>Domain</b> - {$request->domain->domain}{elseif $request->type eq 'service'}<b>Service</b> - {$request->service->product->name} ({$request->service->domain}){/if}</td>
+                                <td class="align-text-bottom">{$request->losing_client_email}</td>
+                                <td class="align-text-bottom">{$request->requestedAt()}</td>
+                                <td class="align-text-bottom"><a href="index.php?m=clienttransfers&action=accept&id={$request->id}" class="btn btn-success">Accept</a> <a href="index.php?m=clienttransfers&action=deny&id={$request->id}" class="btn btn-danger">Deny</a></td>
                             </tr>
                         {/foreach}
                     {/if}
@@ -40,7 +40,7 @@
         </div>
     </div>
     <div class="card-footer">
-        {{$incomingRequestsLinks}}
+        {{$incomingRequests.links}}
     </div>
 </div>
 
@@ -65,19 +65,19 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {if !$previousRequests}
+                    {if $previousRequests.count == 0}
                         <tr>
                             <td colspan="6"><p class="text-center">No records found</p></td>
                         </tr>
                     {else}
-                        {foreach $previousRequests as $request}
+                        {foreach $previousRequests.data as $request}
                             <tr>
-                                <td class="align-text-bottom">{$request.id}</td>
-                                <td class="align-text-bottom">{if $request.type eq 'domain'}<b>Domain</b> - {$request.domain}{elseif $request.type eq 'service'}<b>Service</b> - {$request.service}{/if}</td>
-                                <td class="align-text-bottom">{$request.requested_by}</td>
-                                <td class="align-text-bottom">{$request.result}</td>
-                                <td class="align-text-bottom">{$request.requested_date}</td>
-                                <td class="align-text-bottom">{$request.completed_date}</td>
+                                <td class="align-text-bottom">{$request->id}</td>
+                                <td class="align-middle">{if $request->type eq 'domain'}<b>Domain</b> - {$request->domain->domain}{elseif $request->type eq 'service'}<b>Service</b> - {$request->service->product->name} ({$request->service->domain}){/if}</td>
+                                <td class="align-text-bottom">{$request->losing_client_email}</td>
+                                <td class="align-text-bottom">{$request->getStatus()}</td>
+                                <td class="align-text-bottom">{$request->requestedAt()}</td>
+                                <td class="align-text-bottom">{$request->completedAt()}</td>
                             </tr>
                         {/foreach}
                     {/if}
@@ -86,6 +86,6 @@
         </div>
     </div>
     <div class="card-footer">
-        {{$previousRequestsLinks}}
+        {{$previousRequests.links}}
     </div>  
 </div>
