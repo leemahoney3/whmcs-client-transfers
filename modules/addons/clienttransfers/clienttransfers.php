@@ -11,13 +11,13 @@
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
 use LMTech\ClientTransfers\App;
 use LMTech\ClientTransfers\Admin\Admin;
-use LMTech\ClientTransfers\Client\Client;
+use LMTech\ClientTransfers\Client\ClientArea;
 use LMTech\ClientTransfers\Config\Config;
 
 require __DIR__ . '/vendor/autoload.php';
@@ -48,6 +48,6 @@ function clienttransfers_output($vars) {
 
 function clienttransfers_clientarea($vars) {
 
-    return Client::output($vars);
+    return ClientArea::output($vars);
 
 }

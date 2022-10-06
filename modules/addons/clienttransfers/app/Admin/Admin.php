@@ -2,11 +2,6 @@
 
 namespace LMTech\ClientTransfers\Admin;
 
-use LMTech\ClientTransfers\Models\TransferModel;
-use LMTech\ClientTransfers\Helpers\RedirectHelper;
-use LMTech\ClientTransfers\Helpers\AdminPageHelper;
-use LMTech\ClientTransfers\Helpers\PaginationHelper;
-
 /**
  * WHMCS Client Transfers
  *
@@ -18,9 +13,16 @@ use LMTech\ClientTransfers\Helpers\PaginationHelper;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
+
+use WHMCS\User\Client;
+
+use LMTech\ClientTransfers\Models\Transfer;
+use LMTech\ClientTransfers\Helpers\RedirectHelper;
+use LMTech\ClientTransfers\Helpers\AdminPageHelper;
+use LMTech\ClientTransfers\Helpers\PaginationHelper;
 
 class Admin {
 
@@ -36,12 +38,12 @@ class Admin {
         if (AdminPageHelper::getCurrentPage() == 'dashboard') {
 
             $passThru['transfers'] = [
-                'completedTransfers'        => TransferModel::where('status', 'accepted'),
-                'pendingTransfers'          => TransferModel::where('status', 'pending'),
-                'deniedTransfers'           => TransferModel::where('status', 'denied'),
-                'cancelledTransfers'        => TransferModel::where('status', 'cancelled'),
-                'servicesTransferred'       => TransferModel::where('type', 'service')->where('status', 'accepted'),
-                'domainsTransferred'        => TransferModel::where('type', 'domain')->where('status', 'accepted'),
+                'completedTransfers'        => Transfer::where('status', 'accepted'),
+                'pendingTransfers'          => Transfer::where('status', 'pending'),
+                'deniedTransfers'           => Transfer::where('status', 'denied'),
+                'cancelledTransfers'        => Transfer::where('status', 'cancelled'),
+                'servicesTransferred'       => Transfer::where('type', 'service')->where('status', 'accepted'),
+                'domainsTransferred'        => Transfer::where('type', 'domain')->where('status', 'accepted'),
             ];
 
         } else if (AdminPageHelper::getCurrentPage() == 'settings') {
@@ -89,7 +91,7 @@ class Admin {
                 $whereQuery[] = ['gaining_client_id', '=', $recieveingClient];
             }
 
-            $transfersPagination = new PaginationHelper('p', $whereQuery, 5, \LMTech\ClientTransfers\Models\TransferModel::class);
+            $transfersPagination = new PaginationHelper('p', $whereQuery, 5, Transfer::class);
 
             $passThru['transferData'] = [
                 'type'                  => $type,
@@ -98,10 +100,10 @@ class Admin {
                 'transfers'             => $transfersPagination->data(),
                 'transfersLinks'        => $transfersPagination->links(),
                 
-                'losingClients'         => \WHMCS\User\Client::whereIn('id', TransferModel::where('status', ($type == 'completed') ? 'accepted' : $type)->pluck('losing_client_id'))->get(),
+                'losingClients'         => Client::whereIn('id', Transfer::where('status', ($type == 'completed') ? 'accepted' : $type)->pluck('losing_client_id'))->get(),
                 'losingClient'          => $losingClient,
                 
-                'receivingClients'      => \WHMCS\User\Client::whereIn('id', TransferModel::where('status', ($type == 'completed') ? 'accepted' : $type)->pluck('gaining_client_id'))->get(), 
+                'receivingClients'      => Client::whereIn('id', Transfer::where('status', ($type == 'completed') ? 'accepted' : $type)->pluck('gaining_client_id'))->get(), 
                 'recievingClient'       => $recieveingClient,
             ];
 
@@ -109,7 +111,7 @@ class Admin {
 
             $type = AdminPageHelper::getAttribute('type');
             
-            $data = TransferModel::where('status', $type)->get();
+            $data = Transfer::where('status', $type)->get();
 
 
         }

@@ -11,16 +11,18 @@
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
 use WHMCS\Carbon;
+use WHMCS\Domain\Domain;
+use WHMCS\Service\Service;
 use WHMCS\View\Menu\Item as MenuItem;
 
 use LMTech\ClientTransfers\Config\Config;
-use LMTech\ClientTransfers\Database\Database;
-use LMTech\ClientTransfers\Transfer\Transfer;
+use LMTech\ClientTransfers\Models\Transfer;
+use LMTech\ClientTransfers\Handlers\Transfer as TransferHandler;
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -37,7 +39,7 @@ function transfer_service_domain_sidebar(MenuItem $primarySidebar) {
 
             if (!is_null($primarySidebar->getChild('Domain Details Management'))) {
 
-                $domain = Database::getDomainById($id);
+                $domain = Domain::where('id', $id);
 
                 if (in_array($domain->status, explode(',', Config::get('allowed_domain_statuses')))) {
                     $primarySidebar->getChild('Domain Details Management')
@@ -57,7 +59,7 @@ function transfer_service_domain_sidebar(MenuItem $primarySidebar) {
             
             if (!is_null($primarySidebar->getChild('Service Details Actions'))) {
 
-                $service = Database::getServiceById($id);
+                $service = Service::where('id', $id)->first();
 
                 if (in_array($service->domainstatus, explode(',', Config::get('allowed_service_statuses')))) {
                     $primarySidebar->getChild('Service Details Actions')
@@ -91,7 +93,7 @@ function transfer_services_primary_navbar(MenuItem $primaryNavbar) {
 
 function auto_cancel_requests($vars) {
 
-    $transferRequests = Database::getAllPendingTransfers();
+    $transferRequests = Transfer::where('status', 'pending')->get();
 
     foreach ($transferRequests as $transfer) {
 
@@ -99,7 +101,7 @@ function auto_cancel_requests($vars) {
         $todaysDate = Carbon::now();
 
         if ($todaysDate->gt($expiryDate)) {
-            Transfer::cancel($transfer->id);
+            TransferHandler::cancel($transfer->id);
         }
 
     }

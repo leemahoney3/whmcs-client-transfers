@@ -13,14 +13,15 @@ namespace LMTech\ClientTransfers\Client;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
+use WHMCS\Domain\Domain;
+use WHMCS\Service\Service;
+
 use LMTech\ClientTransfers\Config\Config;
-use LMTech\ClientTransfers\Database\Database;
-use LMTech\ClientTransfers\Transfer\Transfer;
-use LMTech\ClientTransfers\Models\TransferModel;
+use LMTech\ClientTransfers\Models\Transfer;
 use LMTech\ClientTransfers\Helpers\PaginationHelper;
 
 class ClientPage {
@@ -97,8 +98,8 @@ class ClientPage {
         if ($this->page == 'init') {
 
             $this->setMultiVars([
-                'services'  => Database::getClientsServicesById($this->clientID),
-                'domains'   => Database::getClientsDomainsbyId($this->clientID),
+                'services'  => Service::select('tblhosting.*', 'tblproducts.name')->where('userid', $this->clientID)->whereIn('domainstatus', explode(',', Config::get('allowed_service_statuses')))->join('tblproducts', 'tblhosting.packageid', '=', 'tblproducts.id')->get(),
+                'domains'   => Domain::where('userid', $this->clientID)->whereIn('status', explode(',', Config::get('allowed_domain_statuses')))->get(),
                 'type'      => $this->type,
                 'id'        => $this->id
             ]);
@@ -107,11 +108,11 @@ class ClientPage {
 
         if ($this->page == 'home') {
 
-            $pendingTransfersPagination     = new PaginationHelper('pe', [['losing_client_id', '=', $this->clientID]], 5, \LMTech\ClientTransfers\Models\TransferModel::class, ['status', ['pending']]);
-            $previousTransfersPagination    = new PaginationHelper('pr', [['losing_client_id', '=', $this->clientID]], 5, \LMTech\ClientTransfers\Models\TransferModel::class, ['status', ['accepted', 'denied', 'cancelled']]);
+            $pendingTransfersPagination     = new PaginationHelper('pe', [['losing_client_id', '=', $this->clientID]], 5, Transfer::class, ['status', ['pending']]);
+            $previousTransfersPagination    = new PaginationHelper('pr', [['losing_client_id', '=', $this->clientID]], 5, Transfer::class, ['status', ['accepted', 'denied', 'cancelled']]);
 
             $this->setMultiVars([
-                'incomingRequestsCount'     => TransferModel::where(['status' => 'pending', 'gaining_client_id' => $this->clientID])->count(),
+                'incomingRequestsCount'     => Transfer::where(['status' => 'pending', 'gaining_client_id' => $this->clientID])->count(),
         
                 'pendingTransfers'          => $pendingTransfersPagination->data(),
                 'pendingTransfersLinks'     => $pendingTransfersPagination->links(),
@@ -124,13 +125,13 @@ class ClientPage {
 
         if ($this->page == 'incoming') {
 
-            $incomingRequestsPagination = new PaginationHelper('in', [['gaining_client_id', '=', $this->clientID]], 5, \LMTech\ClientTransfers\Models\TransferModel::class, ['status', ['pending']]);
-            $previousRequestsPagination = new PaginationHelper('pr', [['gaining_client_id', '=', $this->clientID]], 5, \LMTech\ClientTransfers\Models\TransferModel::class, ['status', ['denied', 'accepted']]);
+            $incomingRequestsPagination = new PaginationHelper('in', [['gaining_client_id', '=', $this->clientID]], 5, Transfer::class, ['status', ['pending']]);
+            $previousRequestsPagination = new PaginationHelper('pr', [['gaining_client_id', '=', $this->clientID]], 5, Transfer::class, ['status', ['denied', 'accepted']]);
 
             $this->setMultiVars([
 
                 'incomingRequests' => [
-                    'count' => TransferModel::where(['status' => 'pending', 'gaining_client_id' => $this->clientID])->count(),
+                    'count' => Transfer::where(['status' => 'pending', 'gaining_client_id' => $this->clientID])->count(),
                     'data'  => $incomingRequestsPagination->data(),
                     'links' => $incomingRequestsPagination->links(),
                 ],

@@ -1,6 +1,6 @@
 <?php
 
-namespace LMTech\ClientTransfers\Email;
+namespace LMTech\ClientTransfers\Handlers;
 
 /**
  * WHMCS Client Transfers
@@ -13,12 +13,16 @@ namespace LMTech\ClientTransfers\Email;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
+use WHMCS\Service\Service;
+use WHMCS\Product\Product;
+
+use LMTech\ClientTransfers\Models\Log;
 use LMTech\ClientTransfers\Config\Config;
-use LMTech\ClientTransfers\Logger\Logger;
+use LMTech\ClientTransfers\Models\Email\Template as EmailTemplate;
 
 class Email {
 
@@ -27,15 +31,15 @@ class Email {
         if (Config::get('send_emails')) {
 
             $result = localAPI('SendEmail', [
-                'messagename' => $name,
-                'id' => $clientID,
-                'customvars' => base64_encode(serialize($vars))
+                'messagename'   => $name,
+                'id'            => $clientID,
+                'customvars'    => base64_encode(serialize($vars))
             ]); 
 
             if ($result['result'] == 'success') {
-                Logger::add('email', 'success', 'Email successfully sent to client (Email: ' . $name . ')', $clientID);
+                Log::add('email', 'success', 'Email successfully sent to client (Email: ' . $name . ')', $clientID);
             } else {
-                Logger::add('email', 'error', 'Email failed to send to client (Email: ' . $name . ')', $clientID);
+                Log::add('email', 'error', 'Email failed to send to client (Email: ' . $name . ')', $clientID);
             }
 
         }
@@ -133,17 +137,17 @@ class Email {
 
     public static function sendWelcomeEmail($serviceData) {
 
-        $productDetails = Database::getProductDetails($serviceData->packageid);
+        $productDetails = Product::where('id', $serviceData->packageid)->first();
 
         if ($productDetails->welcomeemail != 0) {
             
             $result = localAPI('SendEmail', [
-                'messagename'   => Database::getEmailTemplateById($productDetails->welcomeemail)->name,
+                'messagename'   => EmailTemplate::where('id', $productDetails->welcomeemail)->first()->name,
                 'id'            => $serviceData->id,
             ]);
 
             if ($result['result'] == 'error') {
-                Logger::add('email', 'error', 'Welcome email failed to send to client', $serviceData->userid);
+                Log::add('email', 'error', 'Welcome email failed to send to client', $serviceData->userid);
             } 
 
         }

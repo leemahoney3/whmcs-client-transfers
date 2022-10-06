@@ -2,26 +2,44 @@
 
 namespace LMTech\ClientTransfers\Models;
 
-use WHMCS\Carbon;
+/**
+ * WHMCS Client Transfers
+ *
+ * Allow clients to transfer services and domains internally, a badly needed feature.
+ * 
+ * !! Warning: This is a work in progress, please do not download yet for production. !! 
+ *
+ * @package    WHMCS
+ * @author     Lee Mahoney <lee@leemahoney.dev>
+ * @copyright  Copyright (c) Lee Mahoney 2022
+ * @license    MIT License
+ * @version    1.0.2
+ * @link       https://leemahoney.dev
+ */
 
-class TransferModel extends \WHMCS\Model\AbstractModel {
+use WHMCS\Carbon;
+use WHMCS\User\Client;
+use WHMCS\Domain\Domain;
+use WHMCS\Service\Service;
+
+class Transfer extends \WHMCS\Model\AbstractModel {
 
     protected $table = 'mod_clienttransfers_transfers';
 
     public function domain() {
-        return $this->hasOne(\WHMCS\Domain\Domain::class, 'id', 'domain_id');
+        return $this->hasOne(Domain::class, 'id', 'domain_id');
     }
 
     public function service() {
-        return $this->hasOne(\WHMCS\Service\Service::class, 'id', 'service_id');
+        return $this->hasOne(Service::class, 'id', 'service_id');
     }
 
     public function losingClient() {
-        return $this->hasOne(\WHMCS\User\Client::class, 'id', 'losing_client_id');
+        return $this->hasOne(Client::class, 'id', 'losing_client_id');
     }
 
     public function gainingClient() {
-        return $this->hasOne(\WHMCS\User\Client::class, 'id', 'gaining_client_id');
+        return $this->hasOne(Client::class, 'id', 'gaining_client_id');
     }
 
     public function requestedAt() {

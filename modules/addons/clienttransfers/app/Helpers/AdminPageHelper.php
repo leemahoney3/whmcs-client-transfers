@@ -13,11 +13,12 @@ namespace LMTech\ClientTransfers\Helpers;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
 use WHMCS\Config\Setting;
+
 use LMTech\ClientTransfers\Helpers\RedirectHelper;
 use LMTech\ClientTransfers\Helpers\TemplateHelper;
 

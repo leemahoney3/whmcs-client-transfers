@@ -1,6 +1,6 @@
 <?php
 
-namespace LMTech\ClientTransfers\Invoice;
+namespace LMTech\ClientTransfers\Handlers;
 
 /**
  * WHMCS Client Transfers
@@ -13,12 +13,31 @@ namespace LMTech\ClientTransfers\Invoice;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
-use LMTech\ClientTransfers\Email\Email;
-use LMTech\ClientTransfers\Logger\Logger;
+
+/*
+
+So.. there is a slight issue with regenerating invoices...
+
+WHMCS wont generate the invoice again if nothing has changed since the last generation. What I mean is if an invoice was generated for the service on client A's account, it will only regenerate if the due date changes on client B's account.
+
+Possible solution: completely delete the invoice and related invoice items? Move non-related services to another invoice first however or just delete the items? Will try this.
+
+Another possible solution: change the date on the services by one day and then generate the invoices without sending the email. Modify the invoices back to the correct dates as well as the services and then send out the emails for the invoices.
+
+^ thanks WHMCS, a simple override would have been nice... will try solution one first.
+
+*/
+
+use WHMCS\Service\Addon;
+use WHMCS\Billing\Invoice as InvoiceModel;
+use WHMCS\Billing\Invoice\Item as InvoiceItem;
+
+use LMTech\ClientTransfers\Models\Log;
+use LMTech\ClientTransfers\Handlers\Email;
 use LMTech\ClientTransfers\Database\Database;
 
 class Invoice {
@@ -30,16 +49,16 @@ class Invoice {
         ]);
 
         if ($result['result'] == 'success') {
-            Logger::add('invoice', 'success', 'Successfully generated due invoices for client: ' . json_encode($result), $clientID);
+            Log::add('invoice', 'success', 'Successfully generated due invoices for client: ' . json_encode($result), $clientID);
         } else {
-            Logger::add('invoice', 'error', 'Unable to generate due invoices for client: ' . json_encode($result), $clientID);
+            Log::add('invoice', 'error', 'Unable to generate due invoices for client: ' . json_encode($result), $clientID);
         }
 
     }
 
     public static function cancel($type, $serviceID, $clientID) {
 
-        $clientInvoices = Database::getClientInvoices($clientID);
+        $clientInvoices = InvoiceModel::where('userid', $clientID)->where('status', 'Unpaid')->get();
 
         # Loop through all invoices for client
         foreach ($clientInvoices as $invoice) {
@@ -48,7 +67,7 @@ class Invoice {
             $unrelated  = [];
             $count      = 0;
 
-            $invoiceItems = Database::getInvoiceItems($invoice->id);
+            $invoiceItems = InvoiceItem::where('invoiceid', $invoice->id)->get();
 
             # On each invoice, count the invoice items (to get a total)
             $itemCount = count($invoiceItems);
@@ -60,7 +79,7 @@ class Invoice {
 
                     $addonIds = [];
 
-                    $getServiceAddons = Database::getServiceAddons($serviceID);
+                    $getServiceAddons = Addon::where('hostingid', $serviceID)->get();
 
                     foreach ($getServiceAddons as $addon) {
                         $addonIds[] = $addon->id;
@@ -92,22 +111,27 @@ class Invoice {
             if ($itemCount == $count) {
                 
                 # Cancel the invoice
-                Database::cancelInvoice($invoice->id);
+                InvoiceModel::where('id', $invoice->id)->update([
+                    'status' => 'Cancelled'
+                ]);
 
                 # Workaround for due invoices not being generated. Change the relid on each invoice item to a non-existant one so the invoice regenerates if for some reason the client gets the service transferred back to them
                 foreach ($related as $itemID) {
-                    $item = Database::getInvoiceItem($itemID);
-                    Database::updateInvoiceItem($itemID, [
+
+                    $item = InvoiceItem::where('id', $itemID)->first();
+
+                    InvoiceItem::where('id', $itemID)->update([
                         'relid'         => 0,
                         'description'   => '(Transfered Away) ' . $item->description
                     ]);
+
                 }
 
             } else {
                 
                 # if they do not match, delete each invoice item based on their id and send an updated invoice email notification
                 foreach ($related as $itemID) {
-                    Database::deleteInvoiceItem($itemID);
+                    InvoiceItem::where('id', $itemID)->delete();
                 }
 
                 self::updateTotal($invoice);
@@ -122,17 +146,13 @@ class Invoice {
 
     public static function updateTotal($invoice) {
 
-        $invoiceItems = Database::getInvoiceItems($invoice->id);
+        $invoiceItems = InvoiceItem::where('invoiceid', $invoice->id)->get();
 
         $subTotal   = 0;
         $total      = 0;
 
         foreach ($invoiceItems as $item) {
-
-            $itemData = Database::getInvoiceItem($item->id);
-
-            $subTotal += $itemData->amount;
-
+            $subTotal += $item->amount;
         }
 
         $subTotal = number_format($subTotal, 2, '.', '');
@@ -141,7 +161,7 @@ class Invoice {
         $tax2   = $subTotal * $invoice->taxrate2 / 100;
         $total  = ($subTotal + $tax + $tax2) - $invoice->credit;
 
-        Database::updateInvoice($invoice->id, [
+        InvoiceModel::where('id', $invoice->id)->update([
             'subTotal'  => $subTotal,
             'tax'       => $tax,
             'tax2'      => $tax2,

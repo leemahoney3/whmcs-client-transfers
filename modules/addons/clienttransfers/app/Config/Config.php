@@ -13,11 +13,11 @@ namespace LMTech\ClientTransfers\Config;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
-use WHMCS\Database\Capsule;
+use WHMCS\Module\Addon\Setting as AddonSetting;
 
 class Config {
 
@@ -139,7 +139,7 @@ class Config {
 
     public static function get($setting) {
 
-        return $getAddonConfig = Capsule::table('tbladdonmodules')->where('module', 'clienttransfers')->where('setting', $setting)->first()->value;
+        return AddonSetting::where('module', 'clienttransfers')->where('setting', $setting)->first()->value;
 
     }
 

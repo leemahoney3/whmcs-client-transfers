@@ -13,28 +13,27 @@ namespace LMTech\ClientTransfers\Helpers;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.0
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
 
 use WHMCS\Module\Gateway;
-use WHMCS\Database\Capsule;
 
 class SubscriptionHelper {
 
     public static function cancel($serviceData) {
             
-            $gateway = new Gateway;
+        $gateway = new Gateway;
 
-            $gateway->load($serviceData->paymentmethod);
+        $gateway->load($serviceData->paymentmethod);
 
-            if ($gateway->functionExists('cancelSubscription')) {
-                $gateway->call('cancelSubscription', ['subscriptionID' => $serviceData->subscriptionid]);
-            }
+        if ($gateway->functionExists('cancelSubscription')) {
+            $gateway->call('cancelSubscription', ['subscriptionID' => $serviceData->subscriptionid]);
+        }
 
-            Capsule::table('tblhosting')->where('id', $serviceData->id)->update([
-                'subscriptionid' => ''
-            ]);
+        Service::where('id', $id)->update([
+            'subscriptionid' => ''
+        ]);
 
     }
 
