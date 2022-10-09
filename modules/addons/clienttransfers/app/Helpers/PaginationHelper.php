@@ -64,7 +64,7 @@ class PaginationHelper {
         
         } else if (empty($this->where) && !empty($this->whereInArray)) {
         
-            $result = $this->model::where($this->where)->whereIn($this->whereInArray[0], $this->whereInArray[1])->offset($this->offset)->limit($this->limit);
+            $result = $this->model::whereIn($this->whereInArray[0], $this->whereInArray[1])->offset($this->offset)->limit($this->limit);
             
         } else {
         
